@@ -1,0 +1,86 @@
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet"href="https://js.arcgis.com/4.5/esri/css/main.css">
+<script src="https://js.arcgis.com/4.5"></script>
+<style>
+html,body,
+#viewDiv{
+padding:0;
+margin:0;
+width:100%;
+heigth:100%;
+}
+</style>
+</head>
+
+<body>
+<script>
+require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/geometry/Point","esri/core/Collection","dojo/domReady!"],function(Map,MapView,FeatureLayer,Point,Collection){
+  var map = new Map({
+      basemap:"topo"
+  });
+  
+  var view = new MapView({
+    container:"viewDiv",
+    map:map,
+    center:[120,30],
+    zoom:6
+  });
+  var fields =[{
+  name:"ObjectID",
+  alias:"ObjectID",
+  type:"oid"
+  }];
+  var graphic = {
+     geometry:new Point({
+     x:120,
+     y:30,
+     spatialReference:{wkid:4326}
+     }),
+     attributes:{
+     objectID:0
+     }
+  };  
+   var  source = new Collection();
+   source.add(graphic);
+   var renderer = {
+      type:"simple",
+      symbol:{
+         type:"simple-marker",
+         color:"#ff0000",
+         size:20,
+         outline:{
+           width:3,
+           color:"#00ff00"
+         }
+      }
+   };
+   
+  var featurelayer = new FeatureLayer({
+  objectIdField:"ObjectID",
+  fields:fields,
+  source:source,
+  geometryType:"point",
+  spatialReference:{wkid:4326},
+  renderer:renderer
+  });
+  
+  map.add(featurelayer);
+  
+  view.then(function(){
+     featurelayer.then(function(){
+       //success
+     });
+  })
+  .otherwise(function(){
+      // fail
+  });
+  
+});
+</script>
+<div id="viewDiv">
+</div>
+</body>
+</html>
+
