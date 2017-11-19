@@ -85,7 +85,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/GraphicsLayer","esri/Graph
          }
       }
   });  
-     graphics.add(graphic);
+    graphicslayer.graphics.add(graphic);
   });
   
 });
