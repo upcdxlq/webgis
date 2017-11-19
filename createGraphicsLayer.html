@@ -16,7 +16,7 @@ heigth:100%;
 
 <body>
 <script>
-require(["esri/Map","esri/views/MapView","esri/layers/GraphicsLayer","esri/geometry/Point","esri/core/Collection","dojo/domReady!"],function(Map,MapView,GraphicsLayer,Point,Collection){
+require(["esri/Map","esri/views/MapView","esri/layers/GraphicsLayer","esri/Graphic","esri/geometry/Point","esri/core/Collection","dojo/domReady!"],function(Map,MapView,GraphicsLayer,Graphic,Point,Collection){
   var map = new Map({
       basemap:"topo"
   });
@@ -27,7 +27,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/GraphicsLayer","esri/geome
     center:[120,30],
     zoom:6
   });
-  var graphic = {
+  var graphic = new Graphic({
      geometry:new Point({
      x:120,
      y:30,
@@ -36,7 +36,7 @@ require(["esri/Map","esri/views/MapView","esri/layers/GraphicsLayer","esri/geome
      attributes:{
      objectID:0
      }
-  };  
+  });  
    var  graphics = new Collection();
    graphics.add(graphic);
    
