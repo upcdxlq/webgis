@@ -1,8 +1,8 @@
 <html>
 <head>
 <meta charset="utf-8">
-<link rel="stylesheet"href="https://arcgis.js.com/4.5/esri/css/main.css">
-<script src="https://arcgis.js.com/4.5"></script>
+<link rel="stylesheet"href="https://js.arcgis.com/4.5/esri/css/main.css">
+<script src="https://js.arcgis.com/4.5"></script>
 <style>
 html,body,
 #viewDiv{
