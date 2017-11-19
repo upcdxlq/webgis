@@ -1,0 +1,93 @@
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://js.arcgis.com/4.5/esri/css/main.css">
+<script src="https://js.arcgis.com/4.5"></script>
+<style>
+html,body,
+#viewDiv{
+padding:0;
+margin:0;
+width:100%;
+height:100%;
+}
+</style>
+</head>
+<body>
+<script>
+require(["esri/Map","esri/MapView","esri/views/2d/draw/Draw","esri/Graphic","dojo/domReady!"],function(Map,MapView,Draw,Graphic){
+
+var map = new Map({
+basemap:"topo"
+});
+
+var view = new MapView({
+container:"viewDiv",
+map:map
+});
+
+var draw = new Draw({
+view:view
+});
+
+view.then(enableCreatePolyline(draw,view));
+
+function enableCreatePolyline(draw, view) {
+  var action = draw.create("polyline");
+
+  // listen to PolylineDrawAction.vertex-add
+  // Fires when the user clicks, or presses the "F" key
+  // Can also fire when the "R" key is pressed to redo.
+  action.on("vertex-add", function (evt) {
+    createPolylineGraphic(evt.vertices);
+  });
+
+  // listen to PolylineDrawAction.vertex-remove
+  // Fires when the "Z" key is pressed to undo the
+  // last added vertex
+  action.on("vertex-remove", function (evt) {
+    createPolylineGraphic(evt.vertices);
+  });
+
+  // listen to PolylineDrawAction.cursor-update
+  // fires when the pointer moves over the view
+  action.on("cursor-update", function (evt) {
+    createPolylineGraphic(evt.vertices);
+  });
+
+  // listen to PolylineDrawAction.draw-complete
+  // event to create a graphic when user double-clicks
+  // on the view or presses the "C" key
+  action.on("draw-complete", function (evt) {
+    createPolylineGraphic(evt.vertices);
+  });
+}
+
+function createPolylineGraphic(vertices){
+  view.graphics.removeAll();
+  var polyline = {
+    type: "polyline", // autocasts as Polyline
+    paths: vertices,
+    spatialReference: view.spatialReference
+  };
+
+  var graphic = new Graphic({
+    geometry: polyline,
+    symbol: {
+      type: "simple-line", // autocasts as SimpleLineSymbol
+      color: [4, 90, 141],
+      width: 3,
+      cap: "round",
+      join: "round"
+    }
+ });
+ view.graphic.add(graphic);
+}
+
+});
+</script>
+
+<div id="viewDiv">
+</div>
+</body>
+</html>
