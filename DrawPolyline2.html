@@ -32,7 +32,7 @@ view:view
 
 //enableCreatePolyline(draw,view);
 
-function enableCreatePolyline(draw, view) {
+function enableCreatePolyline() {
 
   alert("create");
   var action = draw.create("polyline");
@@ -86,15 +86,19 @@ function createPolylineGraphic(vertices){
  view.graphics.add(graphic);
 }
 
+var PolylineBtn= document.getElementById("PolylineBtn");
+PolylineBtn.onclick=enableCreatePolyline;
+
 var Polyline = document.getElementById("Polyline");
 view.ui.add(Polyline,"top-left");
+
 });
 </script>
 
 <div id="viewDiv">
 </div>
 <div id="Polyline">
-  <button onclick="enableCreatePolyline">enableCreatePolyline</button>
+  <button id="PolylineBtn">enableCreatePolyline</button>
 </div>
 </body>
 </html>
