@@ -76,6 +76,9 @@ function enableCreatePolyline() {
 
 function createPolylineGraphic(vertices){
   view.graphics.removeAll();
+  // make all geometry redraw
+  createPointGraphic();
+
   tempPolylineVertices[0]=vertices;
   var paths=tempPolylineVertices;
   if(allPolylineVertices!==null){
@@ -121,14 +124,43 @@ function enableCreatePoint() {
   // PointDrawAction.draw-complete
   // Create a point when user clicks on the view or presses "C" key.
   action.on("draw-complete", function (evt) {
-  	allPointCoordinates[allPointCoordinates.length]=evt.coordinates;
     createPointGraphic(evt.coordinates);
+    allPointCoordinates[allPointCoordinates.length]=evt.coordinates;
     enableCreatePoint();
   });
 }
 
 function createPointGraphic(coordinates){
   view.graphics.removeAll();
+
+// make all geometry redraw
+
+//draw new point
+  var point = {
+    type: "point", // autocasts as /Point
+    x: coordinates[0],
+    y: coordinates[1],
+    spatialReference: view.spatialReference
+  };
+
+  var graphic = new Graphic({
+    geometry: point,
+    symbol: {
+      type: "simple-marker", // autocasts as SimpleMarkerSymbol
+      style: "square",
+      color: "red",
+      size: "16px",
+      outline: { // autocasts as SimpleLineSymbol
+        color: [255, 255, 0],
+        width: 3
+      }
+    }
+  });
+
+  view.graphics.add(graphic);
+
+ //redraw existed points
+
   for(var  i=0;i<allPointCoordinates.length;i++){
   var point = {
     type: "point", // autocasts as /Point
@@ -201,6 +233,9 @@ function enableCreatePolygon() {
 function createPolygonGraphic(vertices){
   view.graphics.removeAll();
   
+	// make all geometry redraw
+	createPointGraphic();
+
   tempPloygonVertices[0]=vertices;
   var rings=tempPloygonVertices;
   if(allPloygonVertices!==null){
@@ -228,11 +263,12 @@ function createPolygonGraphic(vertices){
   view.graphics.add(graphic);
 }
 
+//add click event
 var PolygonBtn= document.getElementById("PolygonBtn");
 PolygonBtn.onclick=enableCreatePolygon;
 
 
-
+//add control to view
 var Geometry = document.getElementById("Geometry");
 view.ui.add(Geometry,"top-left");
 
