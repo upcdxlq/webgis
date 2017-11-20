@@ -77,7 +77,7 @@ function enableCreatePolyline() {
 function createPolylineGraphic(vertices){
   view.graphics.removeAll();
   // make all geometry redraw
-  createPointGraphic();
+ 
 
   tempPolylineVertices[0]=vertices;
   var paths=tempPolylineVertices;
@@ -234,8 +234,7 @@ function createPolygonGraphic(vertices){
   view.graphics.removeAll();
   
 	// make all geometry redraw
-	createPointGraphic();
-
+	
   tempPloygonVertices[0]=vertices;
   var rings=tempPloygonVertices;
   if(allPloygonVertices!==null){
