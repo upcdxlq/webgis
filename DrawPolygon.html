@@ -1,0 +1,118 @@
+<html>
+<head>
+<meta charset="utf-8">
+<!--
+<link rel="stylesheet" href="https://js.arcgis.com/4.5/esri/css/main.css">
+<script src="https://js.arcgis.com/4.5"></script>
+-->
+<link rel="stylesheet" href="http://localhost/arcgis_js_api/library/4.5/esri/css/main.css">
+<script src="http://localhost/arcgis_js_api/library/4.5/init.js"></script>
+<style>
+html,body,
+#viewDiv{
+padding:0;
+margin:0;
+width:100%;
+height:100%;
+}
+</style>
+</head>
+<body>
+<script>
+require(["esri/Map","esri/views/MapView","esri/views/2d/draw/Draw","esri/Graphic","dojo/domReady!"],function(Map,MapView,Draw,Graphic){
+
+var map = new Map({
+basemap:"topo"
+});
+
+var view = new MapView({
+container:"viewDiv",
+map:map
+});
+
+var draw = new Draw({
+view:view
+});
+
+ var allvertices = new Array();
+ var tempvertices =new Array();
+
+function enableCreatePolygon() {
+  var action = draw.create("polygon");
+
+  // PolygonDrawAction.vertex-add
+  // Fires when user clicks, or presses the "F" key.
+  // Can also be triggered when the "R" key is pressed to redo.
+  action.on("vertex-add", function (evt) {
+    createPolygonGraphic(evt.vertices);
+  });
+
+  // PolygonDrawAction.vertex-remove
+  // Fires when the "Z" key is pressed to undo the last added vertex
+  action.on("vertex-remove", function (evt) {
+    createPolygonGraphic(evt.vertices);
+  });
+
+  // Fires when the pointer moves over the view
+  action.on("cursor-update", function (evt) {
+    createPolygonGraphic(evt.vertices);
+  });
+
+  // Add a graphic representing the completed polygon
+  // when user double-clicks on the view or presses the "C" key
+  action.on("draw-complete", function (evt) {
+    createPolygonGraphic(evt.vertices);
+
+    if(allvertices===null){ allvertices[0]=evt.vertices; } 
+    else{allvertices[allvertices.length]=evt.vertices;}
+     enableCreatePolygon();// to repeat 
+
+  });
+}
+
+function createPolygonGraphic(vertices){
+  view.graphics.removeAll();
+
+  tempvertices[0]=vertices;
+  var rings=tempvertices;
+  if(allvertices!==null){
+    rings=tempvertices.concat(allvertices);
+  }
+
+  var polygon = {
+    type: "polygon", // autocasts as Polygon
+    rings: rings,
+    spatialReference: view.spatialReference
+  };
+
+  var graphic = new Graphic({
+    geometry: polygon,
+    symbol: {
+      type: "simple-fill", // autocasts as SimpleFillSymbol
+      color: "purple",
+      style: "solid",
+      outline: {  // autocasts as SimpleLineSymbol
+        color: "#0000ff",
+        width: 1
+      }
+    }
+  });
+  view.graphics.add(graphic);
+}
+
+var PolygonBtn= document.getElementById("PolygonBtn");
+PolygonBtn.onclick=enableCreatePolygon;
+
+var Polygon = document.getElementById("Polygon");
+view.ui.add(Polygon,"top-left");
+
+});
+</script>
+
+<div id="viewDiv">
+</div>
+<div id="Polygon">
+  <button id="PolygonBtn">enableCreatePolygon</button>
+</div>
+</body>
+</html>
