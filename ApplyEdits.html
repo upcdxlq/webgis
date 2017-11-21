@@ -1,0 +1,108 @@
+<html>
+<head>
+	<meta charset="utf-8">
+<!-- 	<link rel="stylesheet" href="http://localhost/arcgis_js_api/library/4.5/esri/css/main.css">
+	<script src="http://localhost/arcgis_js_api/library/4.5/init.js"></script> -->
+	 <link rel="stylesheet" href="https://js.arcgis.com/4.5/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.5/"></script>
+	<style>
+	html,body,
+	#viewDiv{
+		padding: 0;
+		margin: 0;
+		width:100%;
+		height: 100%;
+	}
+    </style>
+</head>
+<body>
+	<script>
+      require(["esri/config",
+          "esri/Map",
+          "esri/views/SceneView",
+          "esri/layers/Layer",
+          "esri/geometry/Extent",
+          "dojo/domReady!"
+      ],function(esriConfig,Map,SceneView,Layer,Extent){
+
+      // esriConfig.request.corsEnabledServers.push("localhost");
+       var featureLayer;
+       var editFeature;
+
+       var map = new Map({
+       	basemap:"topo"
+       });
+       
+       var initialExtent = new Extent({
+          xmin: -13045631,
+          xmax: -13042853,
+          ymin: 4034880,
+          ymax: 4034880,
+          spatialReference: 102100
+       });
+
+       var view = new SceneView({
+       	container:"viewDiv",
+       	map:map,
+       	extent:initialExtent
+       });
+       
+       Layer.fromPortalItem({
+            portalItem: { // autocasts as new PortalItem()
+              id: "511b97fc0d364367b127f8ba5c89ad13"
+            }
+       }).then(addlayer)
+       .otherwise(handleLayerLoadError);
+
+       function addlayer(lyr){
+         featureLayer = lyr;
+         map.add(lyr);
+       }
+       function handleLayerLoadError(err) {
+          console.log("Layer failed to load: ", err);
+       }
+       //select feature
+	   view.on("click", function(evt) {
+		  view.hitTest(evt).then(function(response) {
+		    if (response.results.length > 0 && response.results[0].graphic) {
+
+		      var feature = response.results[0].graphic;
+		      selectFeature(feature.attributes[featureLayer.objectIdField]);
+
+		    }
+		  });
+		});
+
+       function selectFeature(objectId) {
+          // symbol for the selected feature on the view
+          var selectionSymbol = {
+            type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+            color: [0, 0, 0, 0],
+            style: "square",
+            size: "40px",
+            outline: {
+              color: [0, 255, 255, 1],
+              width: "3px"
+            }
+          };
+          var query = featureLayer.createQuery();
+          query.where = featureLayer.objectIdField + " = " + objectId;
+
+          featureLayer.queryFeatures(query).then(function(results) {
+            if (results.features.length > 0) {
+              editFeature = results.features[0];
+              editFeature.symbol = selectionSymbol;
+              view.graphics.add(editFeature);
+            }
+          });
+       }
+
+
+
+      });
+	</script>
+	<div id="viewDiv">
+
+	</div>
+</body>
+</html>
