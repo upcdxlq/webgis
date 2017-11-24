@@ -1,0 +1,101 @@
+<html>
+<head>
+   <meta charset="utf-8">
+   <link rel="stylesheet" href="https://js.arcgis.com/4.5/esri/css/main.css">
+   <script src="https://js.arcgis.com/4.5"></script>
+   <style>
+    html,body,
+    #viewDiv{
+
+    }
+   </style>
+</head>
+<body>
+	<script>
+		require([
+          "esri/Map",
+          "esri/views/MapView",
+          "esri/geometry/geometryEngine",
+          "esri/geometry/Extent",
+          "esri/Graphic",
+          "esri/geometry/Polygon",
+          "dojo/domReady!"
+			],function(Map,MapView,geometryEngine,Extent,Graphic,Polygon){
+
+           
+           var buffer;
+
+
+          var map = new Map({
+          	basemap:"streets"
+          });
+
+          var view = new MapView({
+          	container:"viewDiv",
+            map:map,
+            zoom:6
+           });
+          view.on("click",function(evt){
+
+	          var point = view.toMap({
+	          x: evt.x,
+	          y: evt.y
+	          });
+
+	          var polySym = {
+		        type: "simple-fill", // autocasts as new SimpleFillSymbol()
+		        color: [140, 140, 222, 0.5],
+		        outline: {
+		          color: [0, 0, 0, 0.5],
+		          width: 2
+		        }
+	          };
+	         buffer = geometryEngine.buffer(point, 300, "kilometers");
+	         view.graphics.add(new Graphic({
+		          geometry: buffer,
+		          symbol: polySym
+	          }));
+
+              alert(JSON.stringify(buffer));
+
+              var clipSym = {
+		        type: "simple-fill", // autocasts as new SimpleFillSymbol()
+		        color: "#ff0000",
+		        outline: {
+		          color: [0, 0, 0, 0.5],
+		          width: 2
+		        }
+	          };
+	         var envelope = new Extent({
+	           xmax:evt.x+500,
+	           xmin:evt.x-50,
+	           ymax:evt.y+100,
+	           ymin:evt.y-100
+	         });
+             
+             var clip = geometryEngine.clip(buffer,envelope);
+             alert(JSON.stringify(clip));
+             if(clip){
+             view.graphics.add(new Graphic({
+		          geometry:clip,
+		          symbol: clipSym
+	         }));
+
+	         view.goTo(clip.extent);
+             }else{
+             	alert("clip is null");
+             }
+            
+
+          });
+          
+          
+
+          
+		});
+	</script>
+
+<div id="viewDiv">
+</div>
+</body>
+</html>
