@@ -1,0 +1,135 @@
+<html>
+<head>
+	<meta  cahrset="utf-8">
+	<link rel="stylesheet" href="https://js.arcgis.com/4.5/esri/css/main.css">
+	<script src="https://js.arcgis.com/4.5"></script>
+	<style>
+	#topic{
+		width:100%;
+		height: 20%;
+		background-color: #0000ff;
+	}
+	#nav{
+		width:20%;
+		height:80%;
+        float:left;
+        background-color: gray;
+        text-align: center;
+	}
+	#viewDiv{
+        width:80%;
+        height: 80%;
+        float: left;
+	}
+	#btnemployee,#btntour,#btnlife,#btnagriculture,#btngeoInfoOrg,#btnGDP,#btnenery{
+		width:150px;
+		height: 30px;
+        background-color: #000fff;
+	}
+	</style>
+</head>
+<body>
+    <script>
+    	require(["esri/config","esri/Map","esri/views/MapView","esri/layers/WMSLayer","dojo/dom","dojo/on","dojo/domReady!"],function(esriConfig,Map,MapView,WMSLayer,dom,on){
+             
+             esriConfig.request.corsEnabledServers.push("http://gisserver.tianditu.com/","http://gisserver.tianditu.com:80/");
+
+          
+    		var map = new Map({
+    			basemap:"topo"
+    		});
+    		var view = new MapView({
+    			container:"viewDiv",
+    			map:map,
+    			zoom:4,
+    			center:[110,33]
+
+    		});
+       
+           var adminDivisionLayer = new WMSLayer({
+           	url:"http://gisserver.tianditu.com/TDTService/region/wms"
+           }); 
+           var employeeLayer = new WMSLayer({
+           	url:"http://gisserver.tianditu.com/TDTService/ew/2014/wms"
+           });
+           var tourLayer = new WMSLayer({
+           	url:"http://gisserver.tianditu.com:80/TDTService/scenic/wms"
+           });
+           var lifeLayer = new WMSLayer({
+           	url:"http://gisserver.tianditu.com/TDTService/households/2014/wms"
+           });
+           var agricultureLayer = new WMSLayer({
+           	url:"http://gisserver.tianditu.com/TDTService/agriculture/2014/wms"
+           });
+           var geoInfoOrgLayer = new WMSLayer({
+           	url:"http://gisserver.tianditu.com/TDTService/gisinstitute/wms"
+           });
+           var GDPLayer =new WMSLayer({
+           	url:"http://gisserver.tianditu.com/TDTService/gdp/2014/wms"
+           });
+           var energyLayer = new WMSLayer({
+           	url:"http://gisserver.tianditu.com/TDTService/energy/2014/wms"
+           });
+
+           var btnemployee = dom.byId("btnemployee");
+           on(btnemployee,"click",function(evt){
+           map.removeAll();
+           map.add(employeeLayer);
+           //view.goTo(employeeLayer.extent);
+           });
+
+           var btntour = dom.byId("btntour");
+           on(btntour,"click",function(evt){
+           map.removeAll();
+           map.add(tourLayer);
+           });
+           
+           var btnlife = dom.byId("btnlife");
+           on(btnlife,"click",function(evt){
+           map.removeAll();
+           map.add(lifeLayer);
+           });
+           
+           var btnagriculture = dom.byId("btnagriculture");
+           on(btnagriculture,"click",function(evt){
+           map.removeAll();
+           map.add(agricultureLayer);
+           });
+
+           var btngeoInfoOrg = dom.byId("btngeoInfoOrg");
+           on(btngeoInfoOrg,"click",function(evt){
+           map.removeAll();
+           map.add(geoInfoOrgLayer);
+           });
+
+           var btnGDP = dom.byId("btnGDP");
+           on(btnGDP,"click",function(evt){
+           map.removeAll();
+           map.add(GDPLayer);
+           });
+
+           var btnenery = dom.byId("btnenery");
+           on(btnenery,"click",function(evt){
+           map.removeAll();
+           map.add(energyLayer);
+           });
+
+
+    	});
+
+    </script>
+
+	<div id="topic"></div>
+	<div id="nav">
+		<button id="btnemployee">就业专题图</button>
+		<button id="btntour">旅游专题图</button>
+		<button id="btnlife">人民生活专题图</button>
+		<button id="btnagriculture">农业专题图</button>
+		<button id="btngeoInfoOrg">地理信息设施专题图</button>
+		<button id="btnGDP">国名经济专题图</button>
+		<button id="btnenery">能源专题图</button>
+
+	</div>
+	<div id="viewDiv"></div>
+</body>
+</html>
