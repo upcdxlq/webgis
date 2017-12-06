@@ -1,0 +1,66 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>WMSLayer - 4.5</title>
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.5/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.5/"></script>
+  <script>
+    require([
+      "esri/config",
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/WMSLayer",
+      "esri/layers/WMTSLayer",
+      "esri/widgets/Legend",
+      "dojo/domReady!"
+    ], function(
+      esriConfig,
+      Map,
+      MapView,
+      WMSLayer,
+      WMTSLayer,
+      Legend
+    ) {
+     esriConfig.request.corsEnabledServers.push(
+        "http://t0.tianditu.com");
+
+      var basecvalayer =new WMTSLayer({ 
+      	url:"http://t0.tianditu.com/cva_c/wmts",
+      	serviceMode:"KVP"
+      });
+     var baseveclayer =new WMTSLayer({ 
+        url:"http://t0.tianditu.com/vec_c/wmts",
+        serviceMode:"KVP"
+      });
+      var map = new Map({
+        layers: [baseveclayer,basecvalayer]
+      });
+
+      var view = new MapView({
+        container: "viewDiv",
+        zoom:6,
+        center:[115,33],
+        map:map
+      });
+
+     view.on("click",function(evt){
+             alert("经纬："+evt.mapPoint.x+":"+evt.mapPoint.y+"\n"+"spatialReference:"+JSON.stringify(baseveclayer.spatialReference));
+          });
+    });
+  </script>
+</head>
+<body>
+  <div id="viewDiv"></div>
+</body>
+</html>
