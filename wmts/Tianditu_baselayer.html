@@ -1,0 +1,88 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>WMSLayer - 4.5</title>
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.5/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.5/"></script>
+  <script>
+    require([
+      "esri/config",
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/WMSLayer",
+      "esri/layers/WMTSLayer",
+      "esri/layers/FeatureLayer",
+      "esri/widgets/Legend",
+      "dojo/domReady!"
+    ], function(
+      esriConfig,
+      Map,
+      MapView,
+      WMSLayer,
+      WMTSLayer,
+      FeatureLayer,
+      Legend
+    ) {
+     esriConfig.request.corsEnabledServers.push(
+        "http://t0.tianditu.com/","http://localhost:8080/","http://services.arcgisonline.com/","http://www.digitalcq.com/WMTS_T/kvp/services/TDTCQ_IMG/MapServer/TDTWMTSServer");
+       //CGCS2000
+      var basecvalayer =new WMTSLayer({ 
+      	url:"http://t0.tianditu.com/cva_c/wmts",
+      	serviceMode:"KVP"
+      });
+     var baseveclayer =new WMTSLayer({ 
+        url:"http://t0.tianditu.com/vec_c/wmts",
+        serviceMode:"KVP"
+      });
+
+     var layer = new WMSLayer({
+      url:"http://localhost:8080/geoserver/china/wms?service=WMS&version=1.1.0&request=GetMap&layers=china:New_Shapefile(6)"
+     });
+    
+      //web墨卡托
+     var EsriImglayer = new WMTSLayer({
+      url:"http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/WMTS"
+     });
+     var EsrriTransportlayer = new WMTSLayer({
+      url:"http://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/WMTS",
+      serviceMode:"KVP"
+     });
+     var EsriStreetlayer =new WMTSLayer({
+      url:"http://services.arcgisonline.com/arcgis/rest/services/World_Street_Map/MapServer/WMTS",
+      serviceMode:"KVP"
+     });
+
+      var map = new Map({
+        layers: [baseveclayer,basecvalayer,layer]
+        //layers:[EsriImglayer,EsrriTransportlayer]
+        //layers:[EsriStreetlayer,EsrriTransportlayer]
+      });
+
+      var view = new MapView({
+        container: "viewDiv",
+        zoom:10,
+        center:[115,33],
+        map:map
+      });
+
+     view.on("click",function(evt){
+             alert("经纬："+evt.mapPoint.longitude+":"+evt.mapPoint.latitude+"\n"+"投影："+evt.mapPoint.x+":"+evt.mapPoint.y+"\n"+"spatialReference:"+JSON.stringify(view.spatialReference));
+          });
+    });
+  </script>
+</head>
+<body>
+  <div id="viewDiv"></div>
+</body>
+</html>
