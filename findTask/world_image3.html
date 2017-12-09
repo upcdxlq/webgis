@@ -1,0 +1,275 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>WMSLayer - 4.5</title>
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.5/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.5/"></script>
+  <script>
+    require([
+      "esri/config",
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/WMSLayer",
+      "esri/layers/WMTSLayer",
+      "esri/layers/FeatureLayer",
+      "esri/layers/WebTileLayer",
+      "esri/layers/TileLayer",
+      "esri/layers/VectorTileLayer",
+      "esri/widgets/Legend",
+      "esri/tasks/FindTask",
+      "esri/tasks/support/FindParameters",
+      "dojo/_base/array",
+      "dojo/on",
+      "dojo/dom",
+      "dojo/domReady!"
+    ], function(
+      esriConfig,
+      Map,
+      MapView,
+      WMSLayer,
+      WMTSLayer,
+      FeatureLayer,
+      WebTileLayer,    
+      TileLayer,  
+      VectorTileLayer,
+      Legend,
+      FindTask,
+      FindParameters,
+      arrayUtils,
+      on,
+      dom
+    ) {
+     esriConfig.request.corsEnabledServers.push(
+        "http://t0.tianditu.com/","http://localhost:8080/","http://services.arcgisonline.com/","http://t0.tianditu.cn/");
+     //正确的web投影坐标系
+
+     /*     //webtilelayer
+     var EsriSatelliteWebtilelayer = new WebTileLayer({
+      urlTemplate:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{level}/{row}/{col}"
+     });
+     */
+
+     var EsriSatelliteTileLayer = new TileLayer({
+      url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+     });
+/*     var EsrriTransportlayer = new WMTSLayer({
+      url:"http://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/WMTS",
+      serviceMode:"RESTful"
+     });
+    //streets
+     var EsriStreetlayer =new WMTSLayer({
+      url:"http://services.arcgisonline.com/arcgis/rest/services/World_Street_Map/MapServer/WMTS",
+      serviceMode:"RESTful" 
+     });*/
+     //satellite
+     var EsriSatellitelayer =new WMTSLayer({
+      url:"http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/WMTS",
+      serviceMode:"RESTful" 
+     });
+/*     //hybrid
+      var EsriHybridlayer =new WMTSLayer({
+      url:"https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/WMTS",
+      serviceMode:"RESTful" 
+     });
+      //topo
+      var EsriTopolayer =new WMTSLayer({
+      url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/WMTS",
+      serviceMode:"RESTful" 
+     });
+      //gray
+      var EsriGraylayer =new WMTSLayer({
+      url:"https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/WMTS",
+      serviceMode:"RESTful" 
+     });
+     //dark-gray
+      var EsriDarkgraylayer =new WMTSLayer({
+      url:"https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/WMTS",
+      serviceMode:"RESTful" 
+     });
+      //oceans
+     var EsriOceanslayer =new WMTSLayer({
+      url:"https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/WMTS",
+      serviceMode:"RESTful" 
+     });
+     //national-geographic
+     var EsriNationalgeographiclayer =new WMTSLayer({
+      url:"https://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/WMTS",
+      serviceMode:"RESTful" 
+     });
+     //terrain
+     var EsriTerrainlayer =new WMTSLayer({
+      url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/WMTS",
+      serviceMode:"RESTful" 
+     });
+     //osm:并非acgisserver发布的服务
+     var EsriOsmlayer =new WebTileLayer({
+      urlTemplate:"https://{subDomain}.tile.openstreetmap.org/{level}/{col}/{row}.png",
+      subDomains:["a","b","c"]
+     });
+     //dark-gray-vector
+     var EsriDarkgrayvectorlayer =new VectorTileLayer({
+      url:"https://basemaps.arcgis.com/v1/arcgis/rest/services/World_Basemap/VectorTileServer"
+     });
+     EsriDarkgrayvectorlayer.loadStyle("https://www.arcgis.com/sharing/rest/content/items/5ad3948260a147a993ef4865e3fad476/resources/styles/root.json");
+     //gray-vector
+     var EsriGrayvectorlayer =new VectorTileLayer({
+      url:"https://basemaps.arcgis.com/v1/arcgis/rest/services/World_Basemap/VectorTileServer"
+     });
+     EsriGrayvectorlayer.loadStyle("https://www.arcgis.com/sharing/rest/content/items/5dd75c1a544b46c3af01ba5736bfdfa0/resources/styles/root.json");
+     //streets-vector
+    var EsriStreetsvectorlayer =new VectorTileLayer({
+      url:"https://basemaps.arcgis.com/v1/arcgis/rest/services/World_Basemap/VectorTileServer"
+     });
+    EsriStreetsvectorlayer.loadStyle("https://www.arcgis.com/sharing/rest/content/items/a60a37a27cc140ddad15f919cd5a69f2/resources/styles/root.json?f=json");
+    //topo-vector
+    var EsriTopovectorlayer =new VectorTileLayer({
+      url:"https://basemaps.arcgis.com/v1/arcgis/rest/services/World_Basemap/VectorTileServer"
+     });
+    EsriTopovectorlayer.loadStyle("https://www.arcgis.com/sharing/rest/content/items/86d5ed4b6dc741de9dad5f0fbe09ae95/resources/styles/root.json");
+    //streets-night-vector
+    var EsriStreetsnightvectorlayer =new VectorTileLayer({
+      url:"https://basemaps.arcgis.com/v1/arcgis/rest/services/World_Basemap/VectorTileServer"
+     });
+    EsriStreetsnightvectorlayer.loadStyle("https://www.arcgis.com/sharing/rest/content/items/92c551c9f07b4147846aae273e822714/resources/styles/root.json");
+    //streets-relief-vector
+    var EsriStreetsreliefvectorlayer =new VectorTileLayer({
+      url:"https://basemaps.arcgis.com/v1/arcgis/rest/services/World_Basemap/VectorTileServer"
+     });
+    EsriStreetsreliefvectorlayer.loadStyle("https://www.arcgis.com/sharing/rest/content/items/78c0a9ab4fbf4198a8b951848aab19d8/resources/styles/root.json");
+    //streets-navigation-vector
+     var EsriStreetsnavigationvectorlayer =new VectorTileLayer({
+      url:"https://basemaps.arcgis.com/v1/arcgis/rest/services/World_Basemap/VectorTileServer"
+     });
+    EsriStreetsnavigationvectorlayer.loadStyle("https://www.arcgis.com/sharing/rest/content/items/e19e9330bf08490ca8353d76b5e2e658/resources/styles/root.json");
+
+
+    //自定义服务
+    var citylayer =new WMSLayer({
+      url:"http://localhost:8080/geoserver/city/wms?service=WMS&version=1.1.0&request=GetMap&layers=city:New_Shapefile(7)"
+     });*/
+      var map = new Map({
+      //basemap:""
+      // layers:[EsriSatellitelayer]//satellite
+      // layers:[EsriSatellitelayer,EsriHybridlayer]//hybrid
+      //layers:[EsriTopolayer]//topo
+      //layers:[EsriGraylayer]//gray
+      //layers:[EsriDarkgraylayer]//dark-gray
+      //layers:[EsriOceanslayer]//oceans
+      //layers:[EsriNationalgeographiclayer]//national-geographic
+      //layers:[EsriTerrainlayer]//terrain
+      layers:[EsriSatelliteTileLayer]//osm
+      //layers:[EsriDarkgrayvectorlayer]//dark-gray-vector
+      //layers:[EsriGrayvectorlayer]//gray-vector
+      //layers:[EsriStreetsvectorlayer]//streets-vector
+      //layers:[EsriTopovectorlayer]//topo-vector
+      //layers:[EsriStreetsnightvectorlayer]//streets-night-vector
+      //layers:[EsriStreetsreliefvectorlayer]//streets-relief-vector
+      //layers:[EsriStreetsnavigationvectorlayer]//streets-navigation-vector
+      });
+
+
+      var view = new MapView({
+        container: "viewDiv",
+        map:map,
+        center: [-120.174, 47.255],
+        zoom: 7
+      });
+
+      view.on("click",function(evt){
+             alert("经纬："+evt.mapPoint.longitude+":"+evt.mapPoint.latitude+"\n"+"投影："+evt.mapPoint.x+":"+evt.mapPoint.y+"\n"+"spatialReference:"+JSON.stringify(view.spatialReference));
+      });
+
+     
+     
+     //findTask
+     var findDiv = dom.byId("find");
+     var inputTxt = dom.byId("inputTxt");
+     var findbtn = dom.byId("findbtn");
+
+       var find = new FindTask({
+        url: "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+      });
+      var params = new FindParameters({
+        layerIds: [0],
+        searchFields: ["OBJECTID"],
+        returnGeometry:true
+      });
+      function doFind() {
+        // Set the search text to the value of the input box
+        params.searchText = inputTxt.value;
+        // The execute() performs a LIKE SQL query based on the provided text value
+        // showResults() is called once the promise returned here resolves
+        // find.execute(params).then(showResults, rejectedPromise);
+        find.execute(params)
+          .then(showResults)
+          .otherwise(rejectedPromise);
+      }
+      
+
+       function showResults(response) {
+        var results = response.results;
+        
+         arrayUtils.forEach(results, function(findResult, i) {
+          var feature = findResult.feature;
+          var sym = {
+            type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+            color: "red",
+            outline: {  // autocasts as new SimpleLineSymbol()
+              color: [128, 128, 128, 0.5],
+              width: "0.5px"
+            }
+          };
+          feature.symbol=sym;
+          view.graphics.add(feature);
+          view.then(function(){
+            view.goTo(feature);
+          });
+
+          feature.popupTemplate = { // autocasts as new PopupTemplate()
+                title: "{Map Unit Name}",
+                content: "<b>DATE (YYYYMMDD):</b> {DATE (YYYYMMDD)} " +
+                  "<br><b>RESOLUTION (M):</b> {RESOLUTION (M)} " +
+                  "<br><b>ACCURACY (M):</b> {ACCURACY (M)}" +
+                  "<br><b>DESCRIPTION:</b> {DESCRIPTION}"+
+                  "<br><b>SOURCE_INFO:</b>{SOURCE_INFO}"+
+                  "<br><b>SOURCE:</b>{SOURCE}"+
+                  "<br><b>SRC_DATE2:</b>{SRC_DATE2}"
+          };
+
+        });
+      }
+
+      // Executes each time the promise from find.execute() is rejected.
+      function rejectedPromise(err) {
+        console.error("Promise didn't resolve: ", err.message);
+      }
+     
+     on(findbtn,"click",doFind);
+      
+     view.ui.add(findDiv,"top-right");
+
+     
+    
+    });
+  </script>
+</head>
+<body>
+  <div id="find">
+    OBJECTID:
+    <input type="text" id="inputTxt"></input>
+    <input type="button" id="findbtn" value="find"></input>
+  </div>
+  <div id="viewDiv"></div>
+</body>
+</html>
