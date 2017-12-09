@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>IdentifyTask - 4.5</title>
+
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    .esri-popup .esri-popup-header .esri-title {
+      font-size: 18px;
+      font-weight: bolder;
+    }
+
+    .esri-popup .esri-popup-body .esri-popup-content {
+      font-size: 14px;
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.5/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.5/"></script>
+
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/TileLayer",
+      "esri/tasks/IdentifyTask",
+      "esri/tasks/support/IdentifyParameters",
+      "dojo/_base/array",
+      "dojo/on",
+      "dojo/dom",
+      "dojo/domReady!"
+    ], function(
+      Map, MapView, TileLayer,
+      IdentifyTask, IdentifyParameters,
+      arrayUtils, on, dom
+    ) {
+
+      var identifyTask, params;
+
+      // URL to the map service where the identify will be performed
+      var satelliteURL =
+        "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer";
+
+      // Add the map service as a TileLayer for fast rendering
+      // Tile layers are composed of non-interactive images. For that reason we'll
+      // use IdentifyTask to query the service to add interactivity to the app
+      var parcelsLyr = new TileLayer({
+        url: satelliteURL
+      });
+
+      var map = new Map({
+        layers:[parcelsLyr]
+      });
+
+      var view = new MapView({
+        map: map,
+        container: "viewDiv",
+        center: [-120.174, 47.255],
+        zoom: 7
+      });
+
+      view.then(function() {
+        // executeIdentifyTask() is called each time the view is clicked
+        on(view, "click", executeIdentifyTask);
+
+        // Create identify task for the specified map service
+        identifyTask = new IdentifyTask(satelliteURL);
+
+        // Set the parameters for the Identify
+        params = new IdentifyParameters();
+        params.tolerance = 3;
+        params.layerIds = [0];
+        params.layerOption = "top";
+        params.width = view.width;
+        params.height = view.height; 
+        params.returnGeometry=true;
+      });
+
+      // Executes each time the view is clicked
+      function executeIdentifyTask(event) {
+        // Set the geometry to the location of the view click
+        params.geometry = event.mapPoint;
+        params.mapExtent = view.extent;
+        dom.byId("viewDiv").style.cursor = "wait";
+
+        // This function returns a promise that resolves to an array of features
+        // A custom popupTemplate is set for each feature based on the layer it
+        // originates from
+        identifyTask.execute(params).then(function(response) {
+
+          var results = response.results;
+
+          return arrayUtils.map(results, function(result) {
+
+            var feature = result.feature;
+              var sym = {
+                type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+                color: "red",
+                outline: {  // autocasts as new SimpleLineSymbol()
+                  color: [128, 128, 128, 0.5],
+                  width: "0.5px"
+                }
+              };
+              feature.symbol=sym;
+              view.graphics.add(feature);
+
+              feature.popupTemplate = { // autocasts as new PopupTemplate()
+                title: "{Map Unit Name}",
+                content: "<b>DATE (YYYYMMDD):</b> {DATE (YYYYMMDD)} " +
+                  "<br><b>RESOLUTION (M):</b> {RESOLUTION (M)} " +
+                  "<br><b>ACCURACY (M):</b> {ACCURACY (M)}" +
+                  "<br><b>DESCRIPTION:</b> {DESCRIPTION}"+
+                  "<br><b>SOURCE_INFO:</b>{SOURCE_INFO}"+
+                  "<br><b>SOURCE:</b>{SOURCE}"+
+                  "<br><b>SRC_DATE2:</b>{SRC_DATE2}"
+              };
+            return feature;
+          });
+        }).then(showPopup); // Send the array of features to showPopup()
+
+        // Shows the results of the Identify in a popup once the promise is resolved
+        function showPopup(response) {
+          if (response.length > 0) {
+            view.popup.open({
+              features: response,
+              location: event.mapPoint
+            });
+          }
+          dom.byId("viewDiv").style.cursor = "auto";
+        }
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+</body>
+
+</html>
