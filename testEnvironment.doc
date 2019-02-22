@@ -1,0 +1,187 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.IO;
+using System.IO.Ports;
+using System.Threading;
+using System.Text.RegularExpressions;
+using System.Runtime.Serialization.Formatters.Binary;
+namespace CHC.HydeoNacv.SerialPortDebuger
+{
+    public partial class SerialPortDebuger : Form
+    {
+        public SerialPortDebuger()
+        {
+            InitializeComponent();
+        }
+        private SerialPort serialPort = new SerialPort();
+        private StringBuilder builder = new StringBuilder();
+        private System.Threading.Timer timer;
+        FileStream fs;
+        BinaryFormatter iformat;
+        byte[] buff;
+
+        System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();//
+        long pretime = 0;//
+        long interval = 0;//
+        private void SerialPortDebuger_Load(object sender, EventArgs e)
+        {
+            string[] ports = SerialPort.GetPortNames();
+            Array.Sort(ports);
+            comboBoxSerialPort.Items.AddRange(ports);
+            comboBoxBuad.SelectedIndex = comboBoxBuad.Items.IndexOf("115200");
+            comboBoxDataBit.SelectedIndex = comboBoxDataBit.Items.IndexOf("8");
+            comboBoxStopBit.SelectedIndex = comboBoxStopBit.Items.IndexOf("1");
+            comboBoxCheckBit.SelectedIndex = comboBoxCheckBit.Items.IndexOf("无");
+            serialPort.DataReceived += new SerialDataReceivedEventHandler(serialport_DataReceived);
+            buttonSend.Enabled = false;
+        }
+        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+        /// <summary>
+        /// 打开串口
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void buttonOpenPort_Click(object sender, EventArgs e)
+        {
+            if (serialPort.IsOpen)
+            {
+                serialPort.Close();
+            }
+            else
+            {
+                
+                try
+                {
+                    serialPort.PortName = comboBoxSerialPort.Text;
+                    serialPort.BaudRate = int.Parse(comboBoxBuad.Text);
+                    serialPort.StopBits = (StopBits)int.Parse(comboBoxStopBit.Text);
+                    serialPort.Parity = Parity.None;
+                    serialPort.ReadTimeout = 3000;
+                    serialPort.WriteTimeout = 2000;
+                    serialPort.ReceivedBytesThreshold = 50;
+                    serialPort.Open();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+            buttonOpenPort.Text = serialPort.IsOpen ? "关闭串口" : "打开串口";
+            buttonSend.Enabled = serialPort.IsOpen ? true : false;
+        }
+        /// <summary>
+        /// 接收数据处理
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void serialport_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            if (stopWatch == null)
+            {
+                stopWatch = new System.Diagnostics.Stopwatch();
+            }
+            if (!stopWatch.IsRunning)
+            {
+                stopWatch.Start();
+            }
+            interval = stopWatch.ElapsedMilliseconds - pretime;//
+            Console.WriteLine("ReceiveData:" + interval);//
+            pretime = stopWatch.ElapsedMilliseconds;//
+
+            int n = serialPort.BytesToRead;
+            byte[] buf = new byte[n];
+            serialPort.Read(buf, 0, n);
+            this.BeginInvoke((EventHandler)(delegate
+            {
+                builder.Append(Encoding.Default.GetString(buf));
+                this.richTextBoxReceiveData.AppendText(builder.ToString());
+            }));
+        }
+
+        /// <summary>
+        /// 发送数据
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void buttonSend_Click(object sender, EventArgs e)
+        {
+            if (checkBoxHex.Checked)
+            {
+                MatchCollection mc = Regex.Matches(richTextBoxSendData.Text,@"(?i)[\da-f]{2}");
+                List<byte> buf = new List<byte>();
+                foreach (Match m in mc)
+                {
+                    buf.Add(byte.Parse(m.Value,System.Globalization.NumberStyles.HexNumber));
+                }
+                serialPort.Write(buf.ToArray(),0,buf.Count);
+
+            }
+            else
+            {
+                //@"F:\LongQiang\SVNRepositories\gpssensor\XTJC2016\HydroNav6.0\HuaceHydroNav\branch\develop\Source\CHC.Bin\Debug\projects\Pro-181101-092138\RawData\20181105_161520_RawData.sd"
+                //@"F:\LongQiang\SVNRepositories\gpssensor\XTJC2016\HydroNav6.0\HuaceHydroNav\branch\develop\Source\CHC.Bin\Debug\projects\Pro-181114-190311\RawData\20181115_134746_RawData.sd";
+                string path = @"F:\LongQiang\工作记录\学习笔记\HydroNav\水深回放\12.24\20181224_113504_RawData.sd";
+                fs= new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+                iformat = new BinaryFormatter();
+                timer = new System.Threading.Timer(new TimerCallback(callback),null,0,20);
+            }
+        }
+
+        private void buttonClearSend_Click(object sender, EventArgs e)
+        {
+            richTextBoxSendData.Clear();
+        }
+
+        public void callback(object state)
+        {
+            try
+            {
+                int count = 0;
+                while (count < 1)
+                {
+                    count++;
+                    object obj = iformat.Deserialize(fs);
+                    buff = (byte[])obj;
+                    serialPort.Encoding = System.Text.Encoding.Default;
+                    serialPort.Write(buff, 0, buff.Length);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (fs != null)
+                {
+                    fs.Dispose();
+                }
+                timer.Dispose();
+                return;
+            }
+
+            //int count = 0;
+            //try
+            //{
+            //    //while (count < 5)
+            //    {
+            //        count++;
+            //        object obj = iformat.Deserialize(fs);
+            //        buff = (byte[])obj;
+            //        serialPort.Encoding = System.Text.Encoding.Default;
+            //        serialPort.Write(buff, 0, buff.Length);
+            //    }
+            //}
+            //catch(Exception ex)
+            //{ 
+            //    return;
+            //}
+        }
+    }
+}
